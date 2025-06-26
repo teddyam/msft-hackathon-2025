@@ -16,6 +16,7 @@ export interface MessagePostProps {
   isLiked?: boolean;
   onLike?: () => void;
   onReply?: () => void;
+  showChannel?: boolean; // Add option to show/hide channel
 }
 
 export function MessagePost({
@@ -27,16 +28,19 @@ export function MessagePost({
   isLiked = false,
   onLike,
   onReply,
+  showChannel = true, // Default to showing channel for backward compatibility
 }: MessagePostProps) {
   const colorScheme = useColorScheme();
   const colors = Colors[colorScheme ?? 'light'];
 
   return (
-    <ThemedView style={styles.container}>
-      <View style={styles.header}>
-        <ThemedText style={[styles.channelTag, { backgroundColor: colors.tint + '20', color: colors.tint }]}>
-          #{channel}
-        </ThemedText>
+    <ThemedView style={[styles.container, { borderColor: colors.text + '20' }]}>
+      <View style={showChannel ? styles.header : styles.headerWithoutChannel}>
+        {showChannel && (
+          <ThemedText style={[styles.channelTag, { backgroundColor: colors.tint + '20', color: colors.tint }]}>
+            #{channel}
+          </ThemedText>
+        )}
         <ThemedText style={styles.timestamp}>{timestamp}</ThemedText>
       </View>
       
@@ -70,6 +74,7 @@ const styles = StyleSheet.create({
     margin: 12,
     padding: 16,
     borderRadius: 12,
+    borderWidth: 2, // Add border for blocky outline
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
@@ -79,6 +84,12 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  headerWithoutChannel: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
     alignItems: 'center',
     marginBottom: 12,
   },

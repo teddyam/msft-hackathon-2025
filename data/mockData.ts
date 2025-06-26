@@ -2,6 +2,7 @@ export interface Message {
   id: string;
   content: string;
   timestamp: string;
+  createdAt: Date; // Add actual date for proper sorting
   likes: number;
   replies: number;
   channel: string;
@@ -21,6 +22,7 @@ export const mockMessages: Message[] = [
     id: '1',
     content: 'Anyone else excited about the Microsoft Build conference next week? Really hoping to see some cool Azure updates! 🚀',
     timestamp: '5m ago',
+    createdAt: new Date(Date.now() - 5 * 60 * 1000), // 5 minutes ago
     likes: 24,
     replies: 8,
     channel: 'microsoft-general',
@@ -30,6 +32,7 @@ export const mockMessages: Message[] = [
     id: '2',
     content: 'Hot take: Teams is actually getting really good. The new meeting features are a game changer for remote work.',
     timestamp: '12m ago',
+    createdAt: new Date(Date.now() - 12 * 60 * 1000), // 12 minutes ago
     likes: 67,
     replies: 23,
     channel: 'teams-discussion',
@@ -39,6 +42,7 @@ export const mockMessages: Message[] = [
     id: '3',
     content: 'Just shipped my first app using .NET MAUI and I\'m honestly impressed. Cross-platform development has never been smoother.',
     timestamp: '18m ago',
+    createdAt: new Date(Date.now() - 18 * 60 * 1000), // 18 minutes ago
     likes: 45,
     replies: 12,
     channel: 'dotnet-dev',
@@ -48,6 +52,7 @@ export const mockMessages: Message[] = [
     id: '4',
     content: 'PSA: Don\'t forget to update your Windows machines tonight. Patch Tuesday is here again! 💻',
     timestamp: '25m ago',
+    createdAt: new Date(Date.now() - 25 * 60 * 1000), // 25 minutes ago
     likes: 89,
     replies: 34,
     channel: 'windows-updates',
@@ -57,6 +62,7 @@ export const mockMessages: Message[] = [
     id: '5',
     content: 'Working on a Power Platform solution and I can\'t believe how much you can accomplish without writing a single line of code. Microsoft really nailed this one.',
     timestamp: '32m ago',
+    createdAt: new Date(Date.now() - 32 * 60 * 1000), // 32 minutes ago
     likes: 156,
     replies: 67,
     channel: 'power-platform',
@@ -66,6 +72,7 @@ export const mockMessages: Message[] = [
     id: '6',
     content: 'Azure DevOps vs GitHub - which one do you prefer for enterprise projects? Looking for some honest opinions here.',
     timestamp: '45m ago',
+    createdAt: new Date(Date.now() - 45 * 60 * 1000), // 45 minutes ago
     likes: 78,
     replies: 45,
     channel: 'devops-chat',
@@ -75,6 +82,7 @@ export const mockMessages: Message[] = [
     id: '7',
     content: 'Microsoft Copilot in VS Code has literally changed my life. I feel like I have a coding buddy who never gets tired of helping. 🤖',
     timestamp: '1h ago',
+    createdAt: new Date(Date.now() - 60 * 60 * 1000), // 1 hour ago
     likes: 234,
     replies: 89,
     channel: 'copilot-users',
@@ -84,6 +92,7 @@ export const mockMessages: Message[] = [
     id: '8',
     content: 'Office 365 is down again... Anyone else experiencing issues with Outlook today? This is getting frustrating.',
     timestamp: '1h ago',
+    createdAt: new Date(Date.now() - 65 * 60 * 1000), // 1 hour 5 minutes ago
     likes: 23,
     replies: 56,
     channel: 'office-support',

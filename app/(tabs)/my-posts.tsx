@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { FlatList, RefreshControl, StatusBar, StyleSheet } from 'react-native';
+import { FlatList, RefreshControl, StatusBar, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ComposeModal } from '@/components/ComposeModal';
@@ -11,15 +11,13 @@ import { Colors } from '@/constants/Colors';
 import { Message, mockMessages } from '@/data/mockData';
 import { useColorScheme } from '@/hooks/useColorScheme';
 
-export default function HotScreen() {
-  // Sort messages by popularity (likes + replies) for "Hot" content
-  const hotMessages = [...mockMessages].sort((a, b) => {
-    const scoreA = a.likes + a.replies;
-    const scoreB = b.likes + b.replies;
-    return scoreB - scoreA;
-  });
-
-  const [messages, setMessages] = useState<Message[]>(hotMessages);
+export default function MyPostsScreen() {
+  // For demo purposes, we'll filter to show posts that user "liked" as their own posts
+  // In a real app, you'd track user's actual posts
+  const userPosts = mockMessages.filter(msg => msg.isLiked);
+  
+  const [messages, setMessages] = useState<Message[]>(userPosts);
+  const [allMessages, setAllMessages] = useState<Message[]>(mockMessages);
   const [refreshing, setRefreshing] = useState(false);
   const [composeVisible, setComposeVisible] = useState(false);
   const colorScheme = useColorScheme();
@@ -27,14 +25,28 @@ export default function HotScreen() {
 
   const onRefresh = React.useCallback(() => {
     setRefreshing(true);
-    // Simulate loading new messages
+    // Simulate loading user's posts
     setTimeout(() => {
+      const updatedUserPosts = allMessages.filter(msg => msg.isLiked);
+      setMessages(updatedUserPosts);
       setRefreshing(false);
     }, 1000);
-  }, []);
+  }, [allMessages]);
 
   const handleLike = (messageId: string) => {
     setMessages(prev => 
+      prev.map(msg => 
+        msg.id === messageId 
+          ? { 
+              ...msg, 
+              isLiked: !msg.isLiked,
+              likes: msg.isLiked ? msg.likes - 1 : msg.likes + 1
+            }
+          : msg
+      )
+    );
+    
+    setAllMessages(prev => 
       prev.map(msg => 
         msg.id === messageId 
           ? { 
@@ -59,18 +71,19 @@ export default function HotScreen() {
   const handleSubmitPost = (content: string, channel: string) => {
     // Create new message
     const newMessage: Message = {
-      id: `new-${Date.now()}`,
+      id: `user-${Date.now()}`,
       content,
       timestamp: 'now',
       createdAt: new Date(), // Add current timestamp
       likes: 0,
       replies: 0,
       channel,
-      isLiked: false,
+      isLiked: true, // Mark as user's own post
     };
 
-    // Add to beginning of messages list
+    // Add to user's posts and all messages
     setMessages(prev => [newMessage, ...prev]);
+    setAllMessages(prev => [newMessage, ...prev]);
   };
 
   const renderMessage = ({ item }: { item: Message }) => (
@@ -81,6 +94,15 @@ export default function HotScreen() {
     />
   );
 
+  const renderEmptyState = () => (
+    <View style={styles.emptyState}>
+      <ThemedText style={styles.emptyTitle}>No posts yet</ThemedText>
+      <ThemedText style={styles.emptySubtitle}>
+        Your anonymous posts will appear here. Tap the + button to create your first post!
+      </ThemedText>
+    </View>
+  );
+
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       <StatusBar 
@@ -89,8 +111,10 @@ export default function HotScreen() {
       />
       
       <ThemedView style={styles.header}>
-        <ThemedText type="title" style={styles.headerTitle}>Microsoft Chat</ThemedText>
-        <ThemedText style={styles.headerSubtitle}>Anonymous discussions about Microsoft</ThemedText>
+        <ThemedText type="title" style={styles.headerTitle}>My Posts</ThemedText>
+        <ThemedText style={styles.headerSubtitle}>
+          Your anonymous contributions ({messages.length} posts)
+        </ThemedText>
       </ThemedView>
 
       <FlatList
@@ -102,6 +126,7 @@ export default function HotScreen() {
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }
         style={styles.list}
+        ListEmptyComponent={renderEmptyState}
       />
       
       <FloatingActionButton onPress={handleCompose} />
@@ -136,5 +161,24 @@ const styles = StyleSheet.create({
   },
   list: {
     flex: 1,
+  },
+  emptyState: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 40,
+    marginTop: 100,
+  },
+  emptyTitle: {
+    fontSize: 20,
+    fontWeight: '600',
+    marginBottom: 8,
+    textAlign: 'center',
+  },
+  emptySubtitle: {
+    fontSize: 16,
+    opacity: 0.7,
+    textAlign: 'center',
+    lineHeight: 22,
   },
 });

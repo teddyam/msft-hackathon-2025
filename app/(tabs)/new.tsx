@@ -11,15 +11,13 @@ import { Colors } from '@/constants/Colors';
 import { Message, mockMessages } from '@/data/mockData';
 import { useColorScheme } from '@/hooks/useColorScheme';
 
-export default function HotScreen() {
-  // Sort messages by popularity (likes + replies) for "Hot" content
-  const hotMessages = [...mockMessages].sort((a, b) => {
-    const scoreA = a.likes + a.replies;
-    const scoreB = b.likes + b.replies;
-    return scoreB - scoreA;
+export default function NewScreen() {
+  // Sort messages by newest first using actual timestamps
+  const sortedMessages = [...mockMessages].sort((a, b) => {
+    return b.createdAt.getTime() - a.createdAt.getTime();
   });
 
-  const [messages, setMessages] = useState<Message[]>(hotMessages);
+  const [messages, setMessages] = useState<Message[]>(sortedMessages);
   const [refreshing, setRefreshing] = useState(false);
   const [composeVisible, setComposeVisible] = useState(false);
   const colorScheme = useColorScheme();
@@ -69,7 +67,7 @@ export default function HotScreen() {
       isLiked: false,
     };
 
-    // Add to beginning of messages list
+    // Add to beginning of messages list (newest first)
     setMessages(prev => [newMessage, ...prev]);
   };
 
@@ -78,6 +76,7 @@ export default function HotScreen() {
       {...item}
       onLike={() => handleLike(item.id)}
       onReply={() => handleReply(item.id)}
+      showChannel={false} // Hide channel tags in New tab
     />
   );
 
@@ -89,8 +88,8 @@ export default function HotScreen() {
       />
       
       <ThemedView style={styles.header}>
-        <ThemedText type="title" style={styles.headerTitle}>Microsoft Chat</ThemedText>
-        <ThemedText style={styles.headerSubtitle}>Anonymous discussions about Microsoft</ThemedText>
+        <ThemedText type="title" style={styles.headerTitle}>New Posts</ThemedText>
+        <ThemedText style={styles.headerSubtitle}>Latest anonymous discussions</ThemedText>
       </ThemedView>
 
       <FlatList
