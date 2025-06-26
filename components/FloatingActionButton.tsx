@@ -1,8 +1,7 @@
 import { Colors } from '@/constants/Colors';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import React from 'react';
-import { Platform, StyleSheet, TouchableOpacity } from 'react-native';
-import { IconSymbol } from './ui/IconSymbol';
+import { Platform, StyleSheet, Text, TouchableOpacity } from 'react-native';
 
 export interface FloatingActionButtonProps {
   onPress?: () => void;
@@ -24,7 +23,7 @@ export function FloatingActionButton({ onPress }: FloatingActionButtonProps) {
       onPress={onPress}
       activeOpacity={0.8}
     >
-      <IconSymbol size={24} name="plus" color="#FFFFFF" />
+      <Text style={styles.plusIcon}>+</Text>
     </TouchableOpacity>
   );
 }
@@ -32,7 +31,7 @@ export function FloatingActionButton({ onPress }: FloatingActionButtonProps) {
 const styles = StyleSheet.create({
   container: {
     position: 'absolute',
-    bottom: 20,
+    bottom: Platform.OS === 'web' ? 20 : 90, // Move up on mobile to avoid tab bar
     right: 20,
     width: 56,
     height: 56,
@@ -40,6 +39,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     elevation: 8,
+    zIndex: 1000, // Ensure it appears above other elements
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 4,
@@ -51,5 +51,11 @@ const styles = StyleSheet.create({
         elevation: 8,
       },
     }),
+  },
+  plusIcon: {
+    color: '#FFFFFF',
+    fontSize: 24,
+    fontWeight: 'bold',
+    lineHeight: 24,
   },
 });

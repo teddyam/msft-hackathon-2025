@@ -1,5 +1,6 @@
+import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
-import { FlatList, RefreshControl, StatusBar, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, FlatList, Platform, RefreshControl, StatusBar, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ComposeModal } from '@/components/ComposeModal';
@@ -8,133 +9,115 @@ import { MessagePost } from '@/components/MessagePost';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { Colors } from '@/constants/Colors';
-import { Message, mockMessages } from '@/data/mockData';
 import { useColorScheme } from '@/hooks/useColorScheme';
+import { usePosts } from '@/hooks/useDatabase';
 
 export default function MyPostsScreen() {
-  // For demo purposes, we'll filter to show posts that user "liked" as their own posts
-  // In a real app, you'd track user's actual posts
-  const userPosts = mockMessages.filter(msg => msg.isLiked);
-  
-  const [messages, setMessages] = useState<Message[]>(userPosts);
-  const [allMessages, setAllMessages] = useState<Message[]>(mockMessages);
-  const [refreshing, setRefreshing] = useState(false);
+  const { posts, loading, refreshing, createPost, toggleLike, refresh } = usePosts('user');
   const [composeVisible, setComposeVisible] = useState(false);
+  const router = useRouter();
   const colorScheme = useColorScheme();
   const colors = Colors[colorScheme ?? 'light'];
 
-  const onRefresh = React.useCallback(() => {
-    setRefreshing(true);
-    // Simulate loading user's posts
-    setTimeout(() => {
-      const updatedUserPosts = allMessages.filter(msg => msg.isLiked);
-      setMessages(updatedUserPosts);
-      setRefreshing(false);
-    }, 1000);
-  }, [allMessages]);
-
-  const handleLike = (messageId: string) => {
-    setMessages(prev => 
-      prev.map(msg => 
-        msg.id === messageId 
-          ? { 
-              ...msg, 
-              isLiked: !msg.isLiked,
-              likes: msg.isLiked ? msg.likes - 1 : msg.likes + 1
-            }
-          : msg
-      )
-    );
-    
-    setAllMessages(prev => 
-      prev.map(msg => 
-        msg.id === messageId 
-          ? { 
-              ...msg, 
-              isLiked: !msg.isLiked,
-              likes: msg.isLiked ? msg.likes - 1 : msg.likes + 1
-            }
-          : msg
-      )
-    );
+  const handleLike = async (postId: string) => {
+    try {
+      await toggleLike(postId);
+    } catch (error) {
+      console.error('Failed to toggle like:', error);
+    }
   };
 
-  const handleReply = (messageId: string) => {
-    // Placeholder for reply functionality
-    console.log('Reply to message:', messageId);
+  const handleCreatePost = async (content: string) => {
+    try {
+      await createPost(content);
+      setComposeVisible(false);
+    } catch (error) {
+      console.error('Failed to create post:', error);
+    }
   };
 
-  const handleCompose = () => {
-    setComposeVisible(true);
-  };
-
-  const handleSubmitPost = (content: string, channel: string) => {
-    // Create new message
-    const newMessage: Message = {
-      id: `user-${Date.now()}`,
-      content,
-      timestamp: 'now',
-      createdAt: new Date(), // Add current timestamp
-      likes: 0,
-      replies: 0,
-      channel,
-      isLiked: true, // Mark as user's own post
-    };
-
-    // Add to user's posts and all messages
-    setMessages(prev => [newMessage, ...prev]);
-    setAllMessages(prev => [newMessage, ...prev]);
-  };
-
-  const renderMessage = ({ item }: { item: Message }) => (
-    <MessagePost
-      {...item}
-      onLike={() => handleLike(item.id)}
-      onReply={() => handleReply(item.id)}
-    />
-  );
-
-  const renderEmptyState = () => (
-    <View style={styles.emptyState}>
-      <ThemedText style={styles.emptyTitle}>No posts yet</ThemedText>
-      <ThemedText style={styles.emptySubtitle}>
-        Your anonymous posts will appear here. Tap the + button to create your first post!
+  const renderEmptyComponent = () => (
+    <ThemedView style={styles.emptyContainer}>
+      <ThemedText style={styles.emptyText}>
+        No posts yet! Like some posts or create your first post to see them here.
       </ThemedText>
-    </View>
+    </ThemedView>
   );
+
+  const handlePostPress = (postId: string) => {
+    router.push({
+      pathname: '/post/[id]',
+      params: { id: postId }
+    });
+  };
+
+  if (loading) {
+    return (
+      <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+        <StatusBar barStyle={colorScheme === 'light' ? 'dark-content' : 'light-content'} />
+        <ThemedView style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color={colors.primary} />
+          <ThemedText style={styles.loadingText}>Loading your posts...</ThemedText>
+        </ThemedView>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
-      <StatusBar 
-        barStyle={colorScheme === 'dark' ? 'light-content' : 'dark-content'} 
-        backgroundColor={colors.background}
-      />
+      <StatusBar barStyle={colorScheme === 'light' ? 'dark-content' : 'light-content'} />
       
       <ThemedView style={styles.header}>
-        <ThemedText type="title" style={styles.headerTitle}>My Posts</ThemedText>
-        <ThemedText style={styles.headerSubtitle}>
-          Your anonymous contributions ({messages.length} posts)
-        </ThemedText>
+        <View style={styles.titleRow}>
+          <ThemedText type="title" style={styles.headerTitle}>Softserve</ThemedText>
+          <View style={styles.iceCreamRow}>
+            <View style={[styles.iceCreamContainer, { backgroundColor: '#F25022' }]}>
+              <ThemedText style={styles.iceCream}>🍦</ThemedText>
+            </View>
+            <View style={[styles.iceCreamContainer, { backgroundColor: '#7FBA00' }]}>
+              <ThemedText style={styles.iceCream}>🍦</ThemedText>
+            </View>
+            <View style={[styles.iceCreamContainer, { backgroundColor: '#00A4EF' }]}>
+              <ThemedText style={styles.iceCream}>🍦</ThemedText>
+            </View>
+            <View style={[styles.iceCreamContainer, { backgroundColor: '#FFB900' }]}>
+              <ThemedText style={styles.iceCream}>🍦</ThemedText>
+            </View>
+          </View>
+        </View>
+        <ThemedText style={styles.headerSubtitle}>Your posts and liked content</ThemedText>
       </ThemedView>
-
-      <FlatList
-        data={messages}
-        renderItem={renderMessage}
-        keyExtractor={(item) => item.id}
-        showsVerticalScrollIndicator={false}
-        refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-        }
-        style={styles.list}
-        ListEmptyComponent={renderEmptyState}
-      />
       
-      <FloatingActionButton onPress={handleCompose} />
+      <FlatList
+        data={posts}
+        keyExtractor={(item) => item.id}
+        renderItem={({ item }) => (
+          <MessagePost
+            id={item.id}
+            content={item.content}
+            timestamp={item.timestamp}
+            likes={item.likes}
+            replies={item.replies}
+            hashtags={item.hashtags}
+            onLike={() => handleLike(item.id)}
+            isLiked={item.isLiked}
+            onPress={() => handlePostPress(item.id)}
+          />
+        )}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={refresh} />
+        }
+        contentContainerStyle={styles.listContainer}
+        showsVerticalScrollIndicator={false}
+        ListEmptyComponent={renderEmptyComponent}
+      />
+
+      <FloatingActionButton onPress={() => setComposeVisible(true)} />
       
       <ComposeModal
         visible={composeVisible}
         onClose={() => setComposeVisible(false)}
-        onSubmit={handleSubmitPost}
+        onSubmit={handleCreatePost}
       />
     </SafeAreaView>
   );
@@ -150,35 +133,58 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: '#E5E5E5',
   },
+  titleRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 4,
+  },
+  iceCreamRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  iceCreamContainer: {
+    borderRadius: 20,
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    opacity: 0.9,
+  },
+  iceCream: {
+    fontSize: 18,
+  },
   headerTitle: {
     fontSize: 28,
     fontWeight: 'bold',
-    marginBottom: 4,
   },
   headerSubtitle: {
     fontSize: 16,
     opacity: 0.7,
   },
-  list: {
-    flex: 1,
+  listContainer: {
+    flexGrow: 1,
+    paddingBottom: Platform.OS === 'web' ? 20 : 55, // Space for FAB and tab bar
   },
-  emptyState: {
+  loadingContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    padding: 40,
-    marginTop: 100,
   },
-  emptyTitle: {
-    fontSize: 20,
-    fontWeight: '600',
-    marginBottom: 8,
-    textAlign: 'center',
-  },
-  emptySubtitle: {
+  loadingText: {
+    marginTop: 16,
     fontSize: 16,
-    opacity: 0.7,
+  },
+  emptyContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 32,
+    paddingVertical: 64,
+  },
+  emptyText: {
+    fontSize: 16,
     textAlign: 'center',
-    lineHeight: 22,
+    opacity: 0.7,
+    lineHeight: 24,
   },
 });

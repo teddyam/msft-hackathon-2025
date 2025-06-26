@@ -3,7 +3,7 @@ import React from 'react';
 import { Platform } from 'react-native';
 
 import { HapticTab } from '@/components/HapticTab';
-import { IconSymbol } from '@/components/ui/IconSymbol';
+import { CustomSvgIcon } from '@/components/ui/CustomSvgIcon';
 import TabBarBackground from '@/components/ui/TabBarBackground';
 import { Colors } from '@/constants/Colors';
 import { useColorScheme } from '@/hooks/useColorScheme';
@@ -31,7 +31,14 @@ export default function TabLayout() {
         options={{
           title: 'Hot',
           headerShown: false,
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="flame.fill" color={color} />,
+          tabBarIcon: ({ color, focused }) => (
+            <CustomSvgIcon 
+              color={color} 
+              size={28} 
+              focused={focused}
+              type="melting-ice-cream" 
+            />
+          ),
         }}
       />
       <Tabs.Screen
@@ -39,7 +46,14 @@ export default function TabLayout() {
         options={{
           title: 'New',
           headerShown: false,
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="sparkles" color={color} />,
+          tabBarIcon: ({ color, focused }) => (
+            <CustomSvgIcon 
+              color={color} 
+              size={28} 
+              focused={focused}
+              type="sparkly-cone" 
+            />
+          ),
         }}
       />
       <Tabs.Screen
@@ -47,7 +61,14 @@ export default function TabLayout() {
         options={{
           title: 'My Posts',
           headerShown: false,
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="person.circle.fill" color={color} />,
+          tabBarIcon: ({ color, focused }) => (
+            <CustomSvgIcon 
+              color={color} 
+              size={28} 
+              focused={focused}
+              type="ice-cream-sundae" 
+            />
+          ),
         }}
       />
     </Tabs>

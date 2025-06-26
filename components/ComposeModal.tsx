@@ -6,13 +6,11 @@ import {
     Platform,
     StyleSheet,
     TextInput,
-    TouchableOpacity,
-    View,
+    TouchableOpacity
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { Colors } from '@/constants/Colors';
-import { mockChannels } from '@/data/mockData';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import { ThemedText } from './ThemedText';
 import { ThemedView } from './ThemedView';
@@ -21,12 +19,11 @@ import { IconSymbol } from './ui/IconSymbol';
 export interface ComposeModalProps {
   visible: boolean;
   onClose: () => void;
-  onSubmit: (content: string, channel: string) => void;
+  onSubmit: (content: string) => void;
 }
 
 export function ComposeModal({ visible, onClose, onSubmit }: ComposeModalProps) {
   const [content, setContent] = useState('');
-  const [selectedChannel, setSelectedChannel] = useState('microsoft-general');
   const colorScheme = useColorScheme();
   const colors = Colors[colorScheme ?? 'light'];
 
@@ -36,7 +33,7 @@ export function ComposeModal({ visible, onClose, onSubmit }: ComposeModalProps) 
       return;
     }
     
-    onSubmit(content.trim(), selectedChannel);
+    onSubmit(content.trim());
     setContent('');
     onClose();
   };
@@ -69,17 +66,6 @@ export function ComposeModal({ visible, onClose, onSubmit }: ComposeModalProps) 
             >
               <ThemedText style={styles.postText}>Post</ThemedText>
             </TouchableOpacity>
-          </ThemedView>
-
-          {/* Channel Selector */}
-          <ThemedView style={styles.channelSection}>
-            <ThemedText style={styles.sectionTitle}>Channel</ThemedText>
-            <View style={styles.channelSelector}>
-              <IconSymbol size={20} name="number" color={colors.primary} />
-              <ThemedText style={styles.channelText}>
-                {mockChannels.find(ch => ch.id === selectedChannel)?.name || 'Microsoft General'}
-              </ThemedText>
-            </View>
           </ThemedView>
 
           {/* Content Input */}

@@ -1,5 +1,6 @@
+import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
-import { FlatList, RefreshControl, StatusBar, StyleSheet } from 'react-native';
+import { ActivityIndicator, FlatList, Platform, RefreshControl, StatusBar, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ComposeModal } from '@/components/ComposeModal';
@@ -8,78 +9,67 @@ import { MessagePost } from '@/components/MessagePost';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { Colors } from '@/constants/Colors';
-import { Message, mockMessages } from '@/data/mockData';
 import { useColorScheme } from '@/hooks/useColorScheme';
+import { usePosts } from '@/hooks/useDatabase';
 
 export default function HotScreen() {
-  // Sort messages by popularity (likes + replies) for "Hot" content
-  const hotMessages = [...mockMessages].sort((a, b) => {
-    const scoreA = a.likes + a.replies;
-    const scoreB = b.likes + b.replies;
-    return scoreB - scoreA;
-  });
-
-  const [messages, setMessages] = useState<Message[]>(hotMessages);
-  const [refreshing, setRefreshing] = useState(false);
+  const { posts, loading, refreshing, createPost, toggleLike, refresh } = usePosts('hot');
   const [composeVisible, setComposeVisible] = useState(false);
+  const router = useRouter();
   const colorScheme = useColorScheme();
   const colors = Colors[colorScheme ?? 'light'];
 
-  const onRefresh = React.useCallback(() => {
-    setRefreshing(true);
-    // Simulate loading new messages
-    setTimeout(() => {
-      setRefreshing(false);
-    }, 1000);
-  }, []);
-
-  const handleLike = (messageId: string) => {
-    setMessages(prev => 
-      prev.map(msg => 
-        msg.id === messageId 
-          ? { 
-              ...msg, 
-              isLiked: !msg.isLiked,
-              likes: msg.isLiked ? msg.likes - 1 : msg.likes + 1
-            }
-          : msg
-      )
-    );
+  const handleLike = async (postId: string) => {
+    try {
+      await toggleLike(postId);
+    } catch (error) {
+      console.error('Error toggling like:', error);
+    }
   };
 
-  const handleReply = (messageId: string) => {
+  const handleReply = (postId: string) => {
     // Placeholder for reply functionality
-    console.log('Reply to message:', messageId);
+    console.log('Reply to post:', postId);
   };
 
   const handleCompose = () => {
     setComposeVisible(true);
   };
 
-  const handleSubmitPost = (content: string, channel: string) => {
-    // Create new message
-    const newMessage: Message = {
-      id: `new-${Date.now()}`,
-      content,
-      timestamp: 'now',
-      createdAt: new Date(), // Add current timestamp
-      likes: 0,
-      replies: 0,
-      channel,
-      isLiked: false,
-    };
-
-    // Add to beginning of messages list
-    setMessages(prev => [newMessage, ...prev]);
+  const handleSubmitPost = async (content: string) => {
+    try {
+      await createPost(content);
+      setComposeVisible(false);
+    } catch (error) {
+      console.error('Error creating post:', error);
+    }
   };
 
-  const renderMessage = ({ item }: { item: Message }) => (
+  const handlePostPress = (postId: string) => {
+    router.push({
+      pathname: '/post/[id]',
+      params: { id: postId }
+    });
+  };
+
+  const renderMessage = ({ item }: { item: typeof posts[0] }) => (
     <MessagePost
       {...item}
       onLike={() => handleLike(item.id)}
       onReply={() => handleReply(item.id)}
+      onPress={() => handlePostPress(item.id)}
     />
   );
+
+  // Show loading spinner while database initializes
+  if (loading && posts.length === 0) {
+    return (
+      <SafeAreaView style={[styles.loadingContainer, { backgroundColor: colors.background }]}>
+        <ActivityIndicator size="large" color={colors.tint} />
+        <ThemedText style={styles.loadingText}>Loading hot posts...</ThemedText>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
@@ -89,19 +79,36 @@ export default function HotScreen() {
       />
       
       <ThemedView style={styles.header}>
-        <ThemedText type="title" style={styles.headerTitle}>Microsoft Chat</ThemedText>
+        <View style={styles.titleRow}>
+          <ThemedText type="title" style={styles.headerTitle}>Softserve</ThemedText>
+          <View style={styles.iceCreamRow}>
+            <View style={[styles.iceCreamContainer, { backgroundColor: '#F25022' }]}>
+              <ThemedText style={styles.iceCream}>🍦</ThemedText>
+            </View>
+            <View style={[styles.iceCreamContainer, { backgroundColor: '#7FBA00' }]}>
+              <ThemedText style={styles.iceCream}>🍦</ThemedText>
+            </View>
+            <View style={[styles.iceCreamContainer, { backgroundColor: '#00A4EF' }]}>
+              <ThemedText style={styles.iceCream}>🍦</ThemedText>
+            </View>
+            <View style={[styles.iceCreamContainer, { backgroundColor: '#FFB900' }]}>
+              <ThemedText style={styles.iceCream}>🍦</ThemedText>
+            </View>
+          </View>
+        </View>
         <ThemedText style={styles.headerSubtitle}>Anonymous discussions about Microsoft</ThemedText>
       </ThemedView>
 
       <FlatList
-        data={messages}
+        data={posts}
         renderItem={renderMessage}
         keyExtractor={(item) => item.id}
         showsVerticalScrollIndicator={false}
         refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+          <RefreshControl refreshing={refreshing} onRefresh={refresh} />
         }
         style={styles.list}
+        contentContainerStyle={styles.listContent}
       />
       
       <FloatingActionButton onPress={handleCompose} />
@@ -119,16 +126,45 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loadingText: {
+    marginTop: 16,
+    fontSize: 16,
+    opacity: 0.7,
+  },
   header: {
     padding: 20,
     paddingBottom: 10,
     borderBottomWidth: 1,
     borderBottomColor: '#E5E5E5',
   },
+  titleRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 4,
+  },
+  iceCreamRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  iceCreamContainer: {
+    borderRadius: 20,
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    opacity: 0.9,
+  },
+  iceCream: {
+    fontSize: 18,
+  },
   headerTitle: {
     fontSize: 28,
     fontWeight: 'bold',
-    marginBottom: 4,
   },
   headerSubtitle: {
     fontSize: 16,
@@ -136,5 +172,8 @@ const styles = StyleSheet.create({
   },
   list: {
     flex: 1,
+  },
+  listContent: {
+    paddingBottom: Platform.OS === 'web' ? 20 : 55, // Extra padding on mobile for tab bar
   },
 });

@@ -1,44 +1,44 @@
 /**
  * Below are the colors that are used in the app. The colors are defined in the light and dark mode.
- * Microsoft-themed color palette inspired by their design system.
+ * Ice cream themed color palette with soft, creamy tones.
  */
 
-const tintColorLight = '#0078D4'; // Microsoft Blue
-const tintColorDark = '#66B2FF';
+const tintColorLight = '#FF6B9D'; // Strawberry Pink
+const tintColorDark = '#FFB6C1';  // Light Pink
 
 export const Colors = {
   light: {
-    text: '#11181C',
-    background: '#FFFFFF',
+    text: '#2D1B2E',           // Dark Purple (like rich chocolate)
+    background: '#FFF8F3',     // Cream/Vanilla background
     tint: tintColorLight,
-    icon: '#687076',
-    tabIconDefault: '#687076',
+    icon: '#8B7B8B',          // Muted purple-gray
+    tabIconDefault: '#A68DA0', // Soft purple-gray
     tabIconSelected: tintColorLight,
-    border: '#E1E1E1',
-    card: '#F8F9FA',
+    border: '#F0E6E6',        // Very light pink border
+    card: '#FEFBF8',          // Slightly warmer white
     notification: '#FF3B30',
-    primary: '#0078D4',
-    secondary: '#106EBE',
-    accent: '#FFB900',
-    success: '#107C10',
-    warning: '#FF8C00',
-    error: '#D13438',
+    primary: '#FF6B9D',       // Strawberry pink
+    secondary: '#DDA0DD',     // Plum
+    accent: '#87CEEB',        // Sky blue (like blue bubblegum)
+    success: '#98FB98',       // Pale green (mint)
+    warning: '#FFEAA7',       // Pale yellow (vanilla)
+    error: '#FF7675',         // Soft red
   },
   dark: {
-    text: '#ECEDEE',
-    background: '#151718',
+    text: '#F8E8F0',          // Light cream
+    background: '#2C1810',    // Dark chocolate brown
     tint: tintColorDark,
-    icon: '#9BA1A6',
-    tabIconDefault: '#9BA1A6',
+    icon: '#C7A8C0',          // Light purple-gray
+    tabIconDefault: '#9B8A9B', // Muted purple
     tabIconSelected: tintColorDark,
-    border: '#2C2C2E',
-    card: '#1C1C1E',
+    border: '#4A3A3A',        // Dark brown border
+    card: '#3D2817',          // Darker brown card
     notification: '#FF453A',
-    primary: '#66B2FF',
-    secondary: '#3D8CFF',
-    accent: '#FFD60A',
-    success: '#32D74B',
-    warning: '#FF9F0A',
-    error: '#FF3B30',
+    primary: '#FFB6C1',       // Light pink
+    secondary: '#DDA0DD',     // Plum
+    accent: '#87CEEB',        // Sky blue
+    success: '#90EE90',       // Light green
+    warning: '#F1C40F',       // Soft yellow
+    error: '#E74C3C',         // Soft red
   },
 };
