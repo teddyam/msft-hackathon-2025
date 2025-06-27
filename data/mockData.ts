@@ -24,7 +24,7 @@ export const mockMessages: Message[] = [
     timestamp: '5m ago',
     createdAt: new Date(Date.now() - 5 * 60 * 1000), // 5 minutes ago
     likes: 24,
-    replies: 8,
+    replies: 2,
     channel: 'microsoft-general',
     isLiked: false,
   },
@@ -34,7 +34,7 @@ export const mockMessages: Message[] = [
     timestamp: '12m ago',
     createdAt: new Date(Date.now() - 12 * 60 * 1000), // 12 minutes ago
     likes: 67,
-    replies: 23,
+    replies: 2,
     channel: 'teams-discussion',
     isLiked: true,
   },
@@ -44,7 +44,7 @@ export const mockMessages: Message[] = [
     timestamp: '18m ago',
     createdAt: new Date(Date.now() - 18 * 60 * 1000), // 18 minutes ago
     likes: 45,
-    replies: 12,
+    replies: 0,
     channel: 'dotnet-dev',
     isLiked: false,
   },
@@ -54,7 +54,7 @@ export const mockMessages: Message[] = [
     timestamp: '25m ago',
     createdAt: new Date(Date.now() - 25 * 60 * 1000), // 25 minutes ago
     likes: 89,
-    replies: 34,
+    replies: 0,
     channel: 'windows-updates',
     isLiked: false,
   },
@@ -64,7 +64,7 @@ export const mockMessages: Message[] = [
     timestamp: '32m ago',
     createdAt: new Date(Date.now() - 32 * 60 * 1000), // 32 minutes ago
     likes: 156,
-    replies: 67,
+    replies: 1,
     channel: 'power-platform',
     isLiked: true,
   },
@@ -74,7 +74,7 @@ export const mockMessages: Message[] = [
     timestamp: '45m ago',
     createdAt: new Date(Date.now() - 45 * 60 * 1000), // 45 minutes ago
     likes: 78,
-    replies: 45,
+    replies: 0,
     channel: 'devops-chat',
     isLiked: false,
   },
@@ -84,7 +84,7 @@ export const mockMessages: Message[] = [
     timestamp: '1h ago',
     createdAt: new Date(Date.now() - 60 * 60 * 1000), // 1 hour ago
     likes: 234,
-    replies: 89,
+    replies: 0,
     channel: 'copilot-users',
     isLiked: true,
   },
@@ -94,7 +94,7 @@ export const mockMessages: Message[] = [
     timestamp: '1h ago',
     createdAt: new Date(Date.now() - 65 * 60 * 1000), // 1 hour 5 minutes ago
     likes: 23,
-    replies: 56,
+    replies: 0,
     channel: 'office-support',
     isLiked: false,
   },

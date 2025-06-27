@@ -13,18 +13,33 @@ import { useColorScheme } from '@/hooks/useColorScheme';
 import { usePosts } from '@/hooks/useDatabase';
 
 export default function MyPostsScreen() {
-  const { posts, loading, refreshing, createPost, toggleLike, refresh } = usePosts('user');
+  const { posts, loading, refreshing, createPost, toggleUpvote, toggleDownvote, refresh } = usePosts('user');
   const [composeVisible, setComposeVisible] = useState(false);
   const router = useRouter();
   const colorScheme = useColorScheme();
   const colors = Colors[colorScheme ?? 'light'];
 
-  const handleLike = async (postId: string) => {
+  const handleUpvote = async (postId: string) => {
     try {
-      await toggleLike(postId);
+      await toggleUpvote(postId);
     } catch (error) {
-      console.error('Failed to toggle like:', error);
+      console.error('Failed to toggle upvote:', error);
     }
+  };
+
+  const handleDownvote = async (postId: string) => {
+    try {
+      await toggleDownvote(postId);
+    } catch (error) {
+      console.error('Failed to toggle downvote:', error);
+    }
+  };
+
+  const handleReply = (postId: string) => {
+    router.push({
+      pathname: '/post/[id]',
+      params: { id: postId }
+    });
   };
 
   const handleCreatePost = async (content: string) => {
@@ -39,7 +54,7 @@ export default function MyPostsScreen() {
   const renderEmptyComponent = () => (
     <ThemedView style={styles.emptyContainer}>
       <ThemedText style={styles.emptyText}>
-        No posts yet! Like some posts or create your first post to see them here.
+        No posts yet! Create your first post to see it here.
       </ThemedText>
     </ThemedView>
   );
@@ -96,11 +111,15 @@ export default function MyPostsScreen() {
             id={item.id}
             content={item.content}
             timestamp={item.timestamp}
-            likes={item.likes}
+            upvotes={item.upvotes}
+            downvotes={item.downvotes}
             replies={item.replies}
             hashtags={item.hashtags}
-            onLike={() => handleLike(item.id)}
-            isLiked={item.isLiked}
+            onUpvote={() => handleUpvote(item.id)}
+            onDownvote={() => handleDownvote(item.id)}
+            onReply={() => handleReply(item.id)}
+            isUpvoted={item.isUpvoted}
+            isDownvoted={item.isDownvoted}
             onPress={() => handlePostPress(item.id)}
           />
         )}

@@ -13,23 +13,33 @@ import { useColorScheme } from '@/hooks/useColorScheme';
 import { usePosts } from '@/hooks/useDatabase';
 
 export default function HotScreen() {
-  const { posts, loading, refreshing, createPost, toggleLike, refresh } = usePosts('hot');
+  const { posts, loading, refreshing, createPost, toggleUpvote, toggleDownvote, refresh } = usePosts('hot');
   const [composeVisible, setComposeVisible] = useState(false);
   const router = useRouter();
   const colorScheme = useColorScheme();
   const colors = Colors[colorScheme ?? 'light'];
 
-  const handleLike = async (postId: string) => {
+  const handleUpvote = async (postId: string) => {
     try {
-      await toggleLike(postId);
+      await toggleUpvote(postId);
     } catch (error) {
-      console.error('Error toggling like:', error);
+      console.error('Error toggling upvote:', error);
+    }
+  };
+
+  const handleDownvote = async (postId: string) => {
+    try {
+      await toggleDownvote(postId);
+    } catch (error) {
+      console.error('Error toggling downvote:', error);
     }
   };
 
   const handleReply = (postId: string) => {
-    // Placeholder for reply functionality
-    console.log('Reply to post:', postId);
+    router.push({
+      pathname: '/post/[id]',
+      params: { id: postId }
+    });
   };
 
   const handleCompose = () => {
@@ -55,7 +65,8 @@ export default function HotScreen() {
   const renderMessage = ({ item }: { item: typeof posts[0] }) => (
     <MessagePost
       {...item}
-      onLike={() => handleLike(item.id)}
+      onUpvote={() => handleUpvote(item.id)}
+      onDownvote={() => handleDownvote(item.id)}
       onReply={() => handleReply(item.id)}
       onPress={() => handlePostPress(item.id)}
     />

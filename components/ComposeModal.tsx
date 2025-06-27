@@ -27,6 +27,16 @@ export function ComposeModal({ visible, onClose, onSubmit }: ComposeModalProps) 
   const colorScheme = useColorScheme();
   const colors = Colors[colorScheme ?? 'light'];
 
+  // Extract hashtags from current content for preview
+  const hashtagRegex = /#[a-zA-Z0-9_]+/g;
+  const detectedHashtags = content.match(hashtagRegex) || [];
+  
+  // Show clean content preview (content without hashtags)
+  const cleanContent = content
+    .replace(hashtagRegex, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+
   const handleSubmit = () => {
     if (content.trim().length === 0) {
       Alert.alert('Error', 'Please enter a message');
@@ -82,7 +92,7 @@ export function ComposeModal({ visible, onClose, onSubmit }: ComposeModalProps) 
               ]}
               value={content}
               onChangeText={setContent}
-              placeholder="Share your thoughts anonymously..."
+              placeholder="Share your thoughts anonymously... Use #hashtags to categorize your post!"
               placeholderTextColor={colors.icon}
               multiline
               maxLength={500}
@@ -90,6 +100,42 @@ export function ComposeModal({ visible, onClose, onSubmit }: ComposeModalProps) 
             />
             <ThemedText style={styles.characterCount}>
               {content.length}/500
+            </ThemedText>
+            
+            {/* Show detected hashtags */}
+            {detectedHashtags.length > 0 && (
+              <ThemedView style={[styles.hashtagPreview, { backgroundColor: colors.card, borderColor: colors.border }]}>
+                <ThemedText style={[styles.hashtagPreviewTitle, { color: colors.text }]}>
+                  Your post will show:
+                </ThemedText>
+                
+                {/* Clean content preview */}
+                {cleanContent && (
+                  <ThemedView style={[styles.contentPreview, { backgroundColor: colors.background, borderColor: colors.border }]}>
+                    <ThemedText style={[styles.contentPreviewText, { color: colors.text }]}>
+                      "{cleanContent}"
+                    </ThemedText>
+                  </ThemedView>
+                )}
+                
+                {/* Hashtags */}
+                <ThemedText style={[styles.hashtagPreviewSubtitle, { color: colors.text }]}>
+                  With hashtags:
+                </ThemedText>
+                <ThemedView style={styles.hashtagList}>
+                  {detectedHashtags.map((hashtag, index) => (
+                    <ThemedView key={index} style={[styles.hashtagBubble, { backgroundColor: colors.accent + '20', borderColor: colors.accent + '60' }]}>
+                      <ThemedText style={[styles.hashtagText, { color: colors.accent }]}>
+                        {hashtag}
+                      </ThemedText>
+                    </ThemedView>
+                  ))}
+                </ThemedView>
+              </ThemedView>
+            )}
+            
+            <ThemedText style={[styles.hashtagHint, { color: colors.icon }]}>
+              💡 Add #hashtags to categorize your post - they'll be displayed as tags and removed from your text
             </ThemedText>
           </ThemedView>
 
@@ -181,6 +227,57 @@ const styles = StyleSheet.create({
     marginTop: 8,
     fontSize: 12,
     opacity: 0.6,
+  },
+  hashtagHint: {
+    marginTop: 8,
+    fontSize: 12,
+    opacity: 0.7,
+    fontStyle: 'italic',
+    textAlign: 'center',
+  },
+  hashtagPreview: {
+    marginTop: 12,
+    padding: 12,
+    borderRadius: 8,
+    borderWidth: 1,
+  },
+  hashtagPreviewTitle: {
+    fontSize: 12,
+    fontWeight: '600',
+    marginBottom: 8,
+  },
+  hashtagPreviewSubtitle: {
+    fontSize: 11,
+    fontWeight: '500',
+    marginTop: 8,
+    marginBottom: 6,
+    opacity: 0.8,
+  },
+  contentPreview: {
+    padding: 8,
+    borderRadius: 6,
+    borderWidth: 1,
+    marginBottom: 8,
+  },
+  contentPreviewText: {
+    fontSize: 13,
+    fontStyle: 'italic',
+    lineHeight: 18,
+  },
+  hashtagList: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 6,
+  },
+  hashtagBubble: {
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 12,
+    borderWidth: 1,
+  },
+  hashtagText: {
+    fontSize: 12,
+    fontWeight: '600',
   },
   noticeSection: {
     flexDirection: 'row',

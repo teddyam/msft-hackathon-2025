@@ -6,45 +6,41 @@ import { ThemedText } from './ThemedText';
 import { ThemedView } from './ThemedView';
 import { IconSymbol } from './ui/IconSymbol';
 
-export interface MessagePostProps {
+export interface CommentPostProps {
   id: string;
   content: string;
   timestamp: string;
   upvotes: number;
   downvotes: number;
-  replies: number;
   hashtags: string[];
   isUpvoted?: boolean;
   isDownvoted?: boolean;
   onUpvote?: () => void;
   onDownvote?: () => void;
-  onReply?: () => void;
-  onPress?: () => void;
 }
 
-export function MessagePost({
+export function CommentPost({
   content,
   timestamp,
   upvotes,
   downvotes,
-  replies,
   hashtags,
   isUpvoted = false,
   isDownvoted = false,
   onUpvote,
   onDownvote,
-  onReply,
-  onPress,
-}: MessagePostProps) {
+}: CommentPostProps) {
   const colorScheme = useColorScheme();
   const colors = Colors[colorScheme ?? 'light'];
+
+  const netScore = upvotes - downvotes;
 
   return (
     <ThemedView style={[styles.container, { borderColor: colors.text + '20' }]}>
       <View style={styles.header}>
         <View style={styles.leftSection}>
-          <ThemedText style={styles.emoji}>🍦</ThemedText>
-          {/* Hashtags on same line as cone */}
+          <ThemedText style={styles.emoji}>💬</ThemedText>
+          {/* Hashtags on same line as emoji */}
           {hashtags.length > 0 && (
             <ScrollView 
               horizontal 
@@ -73,40 +69,32 @@ export function MessagePost({
         <ThemedText style={styles.timestamp}>{timestamp}</ThemedText>
       </View>
       
-      <TouchableOpacity onPress={onPress} activeOpacity={0.7}>
-        <ThemedText style={styles.content}>{content}</ThemedText>
-      </TouchableOpacity>
+      <ThemedText style={styles.content}>{content}</ThemedText>
       
       <View style={styles.footer}>
         <TouchableOpacity style={styles.actionButton} onPress={onUpvote}>
           <IconSymbol 
-            size={20} 
+            size={18} 
             name={isUpvoted ? "arrow.up.circle.fill" : "arrow.up.circle"} 
-            color={isUpvoted ? colors.primary : colors.text} 
+            color={isUpvoted ? '#4CAF50' : colors.text} 
           />
         </TouchableOpacity>
         
         <ThemedText style={[
           styles.scoreText, 
           { 
-            color: upvotes - downvotes > 0 ? colors.primary : 
-                   upvotes - downvotes < 0 ? '#F44336' : colors.text 
+            color: netScore > 0 ? '#4CAF50' : netScore < 0 ? '#F44336' : colors.text 
           }
         ]}>
-          {upvotes - downvotes}
+          {netScore > 0 ? `+${netScore}` : netScore}
         </ThemedText>
         
         <TouchableOpacity style={styles.actionButton} onPress={onDownvote}>
           <IconSymbol 
-            size={20} 
+            size={18} 
             name={isDownvoted ? "arrow.down.circle.fill" : "arrow.down.circle"} 
             color={isDownvoted ? '#F44336' : colors.text} 
           />
-        </TouchableOpacity>
-        
-        <TouchableOpacity style={styles.actionButton} onPress={onReply}>
-          <IconSymbol size={20} name="bubble.left" color={colors.text} />
-          <ThemedText style={styles.actionText}>{replies}</ThemedText>
         </TouchableOpacity>
       </View>
     </ThemedView>
@@ -115,21 +103,21 @@ export function MessagePost({
 
 const styles = StyleSheet.create({
   container: {
-    margin: 8,
-    padding: 12,
-    borderRadius: 12,
-    borderWidth: 2,
+    margin: 6,
+    padding: 10,
+    borderRadius: 10,
+    borderWidth: 1,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 2,
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 8,
+    marginBottom: 6,
   },
   leftSection: {
     flexDirection: 'row',
@@ -138,11 +126,11 @@ const styles = StyleSheet.create({
     marginRight: 8,
   },
   emoji: {
-    fontSize: 14,
-    marginRight: 8,
+    fontSize: 12,
+    marginRight: 6,
   },
   timestamp: {
-    fontSize: 12,
+    fontSize: 11,
     opacity: 0.6,
   },
   hashtagContainer: {
@@ -155,38 +143,36 @@ const styles = StyleSheet.create({
     paddingRight: 8,
   },
   hashtagBubble: {
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 12,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 8,
     borderWidth: 1,
-    marginRight: 6,
+    marginRight: 4,
   },
   hashtagText: {
-    fontSize: 12,
+    fontSize: 10,
     fontWeight: '600',
   },
   content: {
-    fontSize: 16,
-    lineHeight: 22,
-    marginBottom: 12,
+    fontSize: 14,
+    lineHeight: 20,
+    marginBottom: 8,
   },
   footer: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    justifyContent: 'center',
+    gap: 15,
   },
   actionButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
+    gap: 2,
   },
   scoreText: {
-    fontSize: 16,
-    fontWeight: '600',
-    marginHorizontal: 8,
-  },
-  actionText: {
     fontSize: 14,
-    opacity: 0.8,
+    fontWeight: '600',
+    minWidth: 30,
+    textAlign: 'center',
   },
 });

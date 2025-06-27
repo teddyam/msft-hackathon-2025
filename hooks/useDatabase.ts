@@ -3,34 +3,70 @@ import { useCallback, useEffect, useState } from 'react';
 
 // Global state to notify all components when a post is updated
 class PostUpdateNotifier {
-  private listeners: Set<(postId: string, updates: { isLiked?: boolean; likes?: number }) => void> = new Set();
+  private listeners: Set<(postId: string, updates: { 
+    isUpvoted?: boolean; 
+    isDownvoted?: boolean; 
+    upvotes?: number; 
+    downvotes?: number; 
+  }) => void> = new Set();
 
-  subscribe(callback: (postId: string, updates: { isLiked?: boolean; likes?: number }) => void) {
+  subscribe(callback: (postId: string, updates: { 
+    isUpvoted?: boolean; 
+    isDownvoted?: boolean; 
+    upvotes?: number; 
+    downvotes?: number; 
+  }) => void) {
     this.listeners.add(callback);
     return () => this.listeners.delete(callback);
   }
 
-  notify(postId: string, updates: { isLiked?: boolean; likes?: number }) {
+  notify(postId: string, updates: { 
+    isUpvoted?: boolean; 
+    isDownvoted?: boolean; 
+    upvotes?: number; 
+    downvotes?: number; 
+  }) {
     this.listeners.forEach(callback => callback(postId, updates));
   }
 }
 
 export const postUpdateNotifier = new PostUpdateNotifier();
 
-// Global function to toggle like and notify all components
-export async function toggleLikeGlobally(postId: string) {
+// Global functions to toggle votes and notify all components
+export async function toggleUpvoteGlobally(postId: string) {
   try {
-    const result = await databaseService.toggleLike(postId);
+    const result = await databaseService.toggleUpvote(postId);
     
     // Notify all components about the update
     postUpdateNotifier.notify(postId, {
-      isLiked: result.liked,
-      likes: result.newLikeCount
+      isUpvoted: result.upvoted,
+      isDownvoted: false, // Remove downvote if upvoting
+      upvotes: result.newUpvoteCount,
+      downvotes: result.newDownvoteCount
     });
 
     return result;
   } catch (error) {
-    console.error('Error toggling like globally:', error);
+    console.error('Error toggling upvote globally:', error);
+    throw error;
+  }
+}
+
+export async function toggleDownvoteGlobally(postId: string) {
+  try {
+    const result = await databaseService.toggleDownvote(postId);
+    
+    // Notify all components about the update
+    postUpdateNotifier.notify(postId, {
+      isUpvoted: false, // Remove upvote if downvoting
+      isDownvoted: result.downvoted,
+      upvotes: result.newUpvoteCount,
+      downvotes: result.newDownvoteCount
+    });
+
+    return result;
+  } catch (error) {
+    console.error('Error toggling downvote globally:', error);
     throw error;
   }
 }
@@ -67,7 +103,7 @@ export function useDatabase() {
 }
 
 export function usePosts(type: 'hot' | 'new' | 'user' = 'new') {
-  const [posts, setPosts] = useState<(Post & { isLiked: boolean })[]>([]);
+  const [posts, setPosts] = useState<(Post & { isUpvoted: boolean; isDownvoted: boolean })[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const { isInitialized } = useDatabase();
@@ -96,8 +132,8 @@ export function usePosts(type: 'hot' | 'new' | 'user' = 'new') {
           break;
       }
 
-      const postsWithLikes = await databaseService.getPostsWithLikeStatus(rawPosts);
-      setPosts(postsWithLikes);
+      const postsWithVotes = await databaseService.getPostsWithVoteStatus(rawPosts);
+      setPosts(postsWithVotes);
     } catch (error) {
       console.error('Error loading posts:', error);
     } finally {
@@ -111,14 +147,14 @@ export function usePosts(type: 'hot' | 'new' | 'user' = 'new') {
 
     try {
       const newPost = await databaseService.createPost(content);
-      const postWithLikes = await databaseService.getPostsWithLikeStatus([newPost]);
+      const postWithVotes = await databaseService.getPostsWithVoteStatus([newPost]);
       
       // For user posts tab, we need to refresh the entire list since it has special filtering
       if (type === 'user') {
         await loadPosts(false);
       } else {
         // For other tabs, just add to the beginning
-        setPosts(prev => [postWithLikes[0], ...prev]);
+        setPosts(prev => [postWithVotes[0], ...prev]);
       }
       
       return newPost;
@@ -128,19 +164,21 @@ export function usePosts(type: 'hot' | 'new' | 'user' = 'new') {
     }
   };
 
-  const toggleLike = async (postId: string) => {
+  const toggleUpvote = async (postId: string) => {
     if (!isInitialized) return;
 
     try {
-      const result = await databaseService.toggleLike(postId);
+      const result = await databaseService.toggleUpvote(postId);
       
       setPosts(prev => 
         prev.map(post => 
           post.id === postId 
             ? { 
                 ...post, 
-                isLiked: result.liked,
-                likes: result.newLikeCount
+                isUpvoted: result.upvoted,
+                isDownvoted: false, // Remove downvote when upvoting
+                upvotes: result.newUpvoteCount,
+                downvotes: result.newDownvoteCount
               }
             : post
         )
@@ -148,13 +186,50 @@ export function usePosts(type: 'hot' | 'new' | 'user' = 'new') {
 
       // Notify other components about the update
       postUpdateNotifier.notify(postId, {
-        isLiked: result.liked,
-        likes: result.newLikeCount
+        isUpvoted: result.upvoted,
+        isDownvoted: false,
+        upvotes: result.newUpvoteCount,
+        downvotes: result.newDownvoteCount
       });
 
       return result;
     } catch (error) {
-      console.error('Error toggling like:', error);
+      console.error('Error toggling upvote:', error);
+      throw error;
+    }
+  };
+
+  const toggleDownvote = async (postId: string) => {
+    if (!isInitialized) return;
+
+    try {
+      const result = await databaseService.toggleDownvote(postId);
+      
+      setPosts(prev => 
+        prev.map(post => 
+          post.id === postId 
+            ? { 
+                ...post, 
+                isUpvoted: false, // Remove upvote when downvoting
+                isDownvoted: result.downvoted,
+                upvotes: result.newUpvoteCount,
+                downvotes: result.newDownvoteCount
+              }
+            : post
+        )
+      );
+
+      // Notify other components about the update
+      postUpdateNotifier.notify(postId, {
+        isUpvoted: false,
+        isDownvoted: result.downvoted,
+        upvotes: result.newUpvoteCount,
+        downvotes: result.newDownvoteCount
+      });
+
+      return result;
+    } catch (error) {
+      console.error('Error toggling downvote:', error);
       throw error;
     }
   };
@@ -189,7 +264,8 @@ export function usePosts(type: 'hot' | 'new' | 'user' = 'new') {
     loading,
     refreshing,
     createPost,
-    toggleLike,
+    toggleUpvote,
+    toggleDownvote,
     refresh,
   };
 }
